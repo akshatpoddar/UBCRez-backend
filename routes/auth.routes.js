@@ -10,7 +10,7 @@ signup = async (req, res) => {
     const {name, email, password } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists" });
     }
     const user = await User.create(req.body);
     const token = createSecretToken(user._id);
@@ -29,20 +29,22 @@ login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if(!email || !password ){
-      return res.json({message:'All fields are required'})
+      return res.status(401).json({message:'All fields are required'})
     }
     const user = await User.findOne({ email });
     if(!user){
-      return res.json({message:'User with that email does not exist' }) 
+      return res.status(401).json({message:'User with that email does not exist' }) 
     }
     const auth = await bcrypt.compare(password,user.password)
     if (!auth) {
-      return res.json({message:'Incorrect password or email' }) 
+      return res.status(401).json({message:'Incorrect password or email' }) 
     }
-     const token = createSecretToken(user._id);
-     res.cookie("jwt", token, {
-       withCredentials: true,
-       httpOnly: false,
+    const token = createSecretToken(user._id);
+    res.cookie("jwt", token, {
+      withCredentials: true,
+      httpOnly: true,
+      secure: true,
+      maxAge: 24 * 60 * 60 * 1000
      });
      res.status(201).json({ message: "User logged in successfully", success: true });
   } catch (error) {
@@ -52,17 +54,16 @@ login = async (req, res) => {
 
 // Verify user token
 userVerification = (req, res) => {
-  const token = req.cookies.token
+  const token = req.cookies.jwt
   if (!token) {
-    return res.json({ status: false })
+    return res.json({ user: null })
   }
   jwt.verify(token, process.env.TOKEN_KEY, async (err, data) => {
     if (err) {
-     return res.json({ status: false })
+     return res.json({ user: null })
     } else {
       const user = await User.findById(data.id)
-      if (user) return res.json({ status: true, user: user.email })
-      else return res.json({ status: false })
+      return res.json({user: user})
     }
   })
 }
@@ -77,6 +78,6 @@ logout = (req, res) => {
 router.post('/signup', signup);
 router.post('/login', login);
 router.post('/logout',logout);
-router.post('/',userVerification);
+router.get('/whoami', userVerification);
 
 module.exports = router;

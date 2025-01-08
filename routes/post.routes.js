@@ -1,7 +1,8 @@
 const express = require('express');
-const router = express.Router();
+const auth = require('../middleware/auth');
+const Post = require('../models/post.model');
 
-const Post = require('../models/post.model')
+const router = express.Router();
 
 // Get posts with filters
 router.get('/', async (req, res)=> {
@@ -15,9 +16,11 @@ router.get('/', async (req, res)=> {
 })
 
 // Create post
-router.post('/', async (req, res)=> {
+router.post('/', auth, async (req, res)=> {
     try{
-        post = await Post.create(req.body);
+        post = new Post(req.body)
+        post.author = req.user.id
+        post = await Post.create(post);
         result = await User.findByIdAndUpdate(req.body.author, { $push: { posts: post._id } }, {new:true, upsert: false})
         if(!result){
             throw new Error("User does not exist")
@@ -30,7 +33,7 @@ router.post('/', async (req, res)=> {
 
 
 // Remove all posts
-router.delete('/', async (req, res) => {
+router.delete('/', auth, async (req, res) => {
     try{
         posts = await Post.find()
         await Post.deleteMany({})
@@ -43,7 +46,7 @@ router.delete('/', async (req, res) => {
 
 
 // Remove a post
-router.delete('/:id', async(req, res) => {
+router.delete('/:id', auth, async(req, res) => {
     try{
         post = await Post.findByIdAndDelete(req.params.id)
         if(!post) throw new Error(`Post with id: ${req.params.id} does not exist`)

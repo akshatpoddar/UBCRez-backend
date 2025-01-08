@@ -9,6 +9,7 @@ const residenceOptions = ["Marine Drive", "Ponderosa Commons", "Walter Gage", "E
 const typeOptions = ["Sublet", "Switch"]
 
 const postSchema = new Schema({
+  _id: String,
   title: {
     type: String,
     required: true,
@@ -61,22 +62,20 @@ const subletSchema = new Schema({
     type: Number,
     required: true,
   },
-  duration: {
-    startDate: {
-      type: Date,
-      required: true,
-    },
-    endDate: {
-      type: Date,
-      required: true,
-      validate: {
-        validator: function (endDate) {
-          return endDate >= this.duration.startDate;
-        },
-        message: 'End date must be after the start date',
-      },
-    },
+  startDate: {
+    type: Date,
+    required: true,
   },
+  endDate: {
+    type: Date,
+    required: true,
+    validate: {
+      validator: function (endDate) {
+        return endDate >= this.duration.startDate;
+      },
+      message: 'End date must be after the start date',
+    },
+  }
 });
 
 // Switch Post Schema (inherits from Post)

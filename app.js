@@ -27,12 +27,12 @@ app.use(requestLogger);
 
 app.use('/users', userRoutes)
 app.use('/posts', postRoutes)
-app.use('/', authRoutes)
+app.use('/auth', authRoutes)
 
 connectDB()
 
 app.get('/', (req, res) => {
-  res.send("HELLO WORLD")
+  res.send("HELLO UBCREZ")
 })
 
 app.get('/residences', (req, res) => {

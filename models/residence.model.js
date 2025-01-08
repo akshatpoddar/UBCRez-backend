@@ -2,6 +2,7 @@
 const {RESIDENCE_OPTIONS, ROOM_TYPE} = require('utils/constants')
 
 const residenceSchema = new Schema({
+  _id: String,
   name: {
     type: String,
     enum: RESIDENCE_OPTIONS,
